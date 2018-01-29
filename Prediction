@@ -64,7 +64,6 @@ col_null_count(test)
 
 # change ordered-category variables to numerical
 combine_conv = combine
-# print(combine_conv['ExterQual'])
 cat_to_num(['Ex', 'Gd', 'TA', 'Fa', 'Po'], combine_conv['ExterQual'])
 cat_to_num(['Ex', 'Gd', 'TA', 'Fa', 'Po'], combine_conv['ExterCond'])
 cat_to_num(['Ex', 'Gd', 'TA', 'Fa', 'Po', 'NA'], combine_conv['BsmtQual'])
@@ -81,19 +80,10 @@ cat_to_num(['Ex', 'Gd', 'TA', 'Fa', 'Po', 'NA'], combine_conv['GarageQual'])
 cat_to_num(['Ex', 'Gd', 'TA', 'Fa', 'Po', 'NA'], combine_conv['GarageCond'])
 cat_to_num(['Ex', 'Gd', 'TA', 'Fa', 'NA'], combine_conv['PoolQC'])
 cat_to_num(['GdPrv', 'MnPrv', 'GdWo', 'MnWw', 'NA'], combine_conv['Fence'])
-# don't know why value changed
-# print(combine_conv['ExterQual'])
 
 train_conv = combine_conv.iloc[:len(train), :]
 test_conv = combine_conv.iloc[len(train):, :]
 test_conv = test_conv.reset_index(drop=True)
-# print("train_conv set size : " + str(len(train_conv)))
-# print("test_conv set size : " + str(len(test_conv)) + '\n')
-# print(train_conv.iloc[:10, :10])
-# print(test_conv.iloc[:10, :10])
-# print(train_conv['FireplaceQu'])
-# print(train_conv['FireplaceQu'][0])
-# print(type(train_conv['FireplaceQu'][0]))
 
 # missing value count (after the convert)
 print('#missing value in each columns in train_conv')
@@ -107,7 +97,6 @@ for row in range(0, len(train)):
     if train_conv.loc[row].isnull().sum() > (len(train.columns)-1)*0.3:
         sparse_row.append(row)
 train_dense_row = train_conv.drop(train_conv.index[sparse_row])
-# print(type(train_dense_row))
 
 dense_column = list()
 for col in range(0, len(train_dense_row.columns)-1):
@@ -115,8 +104,6 @@ for col in range(0, len(train_dense_row.columns)-1):
         dense_column.append(col)
 train_dense = train_dense_row.iloc[:, dense_column]
 test_follow_dense = test_conv.iloc[:, dense_column]
-# print(len(train_dense))
-# print(len(train_dense.columns))
 
 # missing value count, again.
 print('#missing value in each columns in train_dense')
@@ -133,7 +120,9 @@ col_null_count(test)
 # missing value imputation (using mode or average by now)
 # train_impute = train_dense
 train_impute = pd.DataFrame(train_dense)
-print(train_dense['MasVnrType'].isnull().sum())
+# both two assignments above lead to changes of train_dense when train_impute is changed
+# contrary to df assignment of .drop, .append return
+# print(train_dense['MasVnrType'].isnull().sum())
 for colname in cate_vari + order_cate_vari:
     if colname in list(train_dense.columns.values):
         if train_dense[colname].isnull().sum() > 0:
@@ -143,9 +132,23 @@ for colname in cate_vari + order_cate_vari:
                 if null_list[index]:
                     train_impute[colname].iat[index] = mode
 # print('MasVnrType' in cate_vari)
-print(train_impute['MasVnrType'].isnull().sum())
-print(train_dense['MasVnrType'].isnull().sum())
-print(train['MasVnrType'].isnull().sum())
+# print(train_impute['MasVnrType'].isnull().sum())
+# print(train_dense['MasVnrType'].isnull().sum())
+# print(train['MasVnrType'].isnull().sum())
+
+for colname in numer_vari + year_vari:
+    if colname in list(train_dense.columns.values):
+        if train_dense[colname].isnull().sum() > 0:
+            null_list = train_dense[colname].isnull()
+            mean = train_dense[colname].mean()
+            for index in range(0, len(train_dense)):
+                if null_list[index]:
+                    train_impute[colname].iat[index] = mean
+
+# missing value count, again.
+print('#missing value in each columns in train_impute')
+col_null_count(train_impute)
+print(train_impute.iloc[:10, :])
 
 # create dummy variables
 # print(type(pd.get_dummies(train['MSSubClass']))) # DataFrame
