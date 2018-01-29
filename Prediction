@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import cross_val_score
 from cat_to_num import cat_to_num
+from col_null_count import  col_null_count
 import math
 
 train = pd.read_csv('./HousePrices/train.csv')
@@ -45,25 +46,21 @@ combine = train.drop(['SalePrice'], axis=1).append(test)
 # print(combine)
 # print(combine.index[2000])
 combine = combine.reset_index(drop=True)
+
+# .drop and .append return new dataframe(by doc)
+# print('\n' + "#indep. variables : " + str(len(train.columns)-1))
+# print("train set size : " + str(len(train)))
+
 # print(combine)
 # print(combine.index[2000])
 
 print("combine set size : " + str(len(combine)) + '\n')
 
 # missing value count
-train_missing = train.isnull().sum(axis=0)
 print('#missing value in each columns in train.csv')
-for i in range(0, len(train_missing)):
-    if train_missing[i] > 0:
-        print(train_missing.index[i] + ' : ' + str(train_missing[i]))
-print('\n')
-
-test_missing = test.isnull().sum(axis=0)
+col_null_count(train)
 print('#missing value in each columns in test.csv')
-for i in range(0, len(test_missing)):
-    if test_missing[i] > 0:
-        print(test_missing.index[i] + ' : ' + str(test_missing[i]))
-print('\n')
+col_null_count(test)
 
 # change ordered-category variables to numerical
 combine_conv = combine
@@ -99,19 +96,10 @@ test_conv = test_conv.reset_index(drop=True)
 # print(type(train_conv['FireplaceQu'][0]))
 
 # missing value count (after the convert)
-train_missing = train_conv.isnull().sum(axis=0)
 print('#missing value in each columns in train_conv')
-for i in range(0, len(train_missing)):
-    if train_missing[i] > 0:
-        print(train_missing.index[i] + ' : ' + str(train_missing[i]))
-print('\n')
-
-test_missing = test_conv.isnull().sum(axis=0)
+col_null_count(train_conv)
 print('#missing value in each columns in test_conv')
-for i in range(0, len(test_missing)):
-    if test_missing[i] > 0:
-        print(test_missing.index[i] + ' : ' + str(test_missing[i]))
-print('\n')
+col_null_count(test_conv)
 
 # remove sparse rows and columns
 sparse_row = list()
@@ -119,7 +107,7 @@ for row in range(0, len(train)):
     if train_conv.loc[row].isnull().sum() > (len(train.columns)-1)*0.3:
         sparse_row.append(row)
 train_dense_row = train_conv.drop(train_conv.index[sparse_row])
-# print(train_dense_row)
+# print(type(train_dense_row))
 
 dense_column = list()
 for col in range(0, len(train_dense_row.columns)-1):
@@ -131,22 +119,20 @@ test_follow_dense = test_conv.iloc[:, dense_column]
 # print(len(train_dense.columns))
 
 # missing value count, again.
-train_dense_missing = train_dense.isnull().sum(axis=0)
 print('#missing value in each columns in train_dense')
-for i in range(0, len(train_dense_missing)):
-    if train_dense_missing[i] > 0:
-        print(train_dense_missing.index[i] + ' : ' + str(train_dense_missing[i]))
-print('\n')
-
-test_follow_missing = test_follow_dense.isnull().sum(axis=0)
+col_null_count(train_dense)
 print('#missing value in each columns in test_follow_dense')
-for i in range(0, len(test_follow_missing)):
-    if test_follow_missing[i] > 0:
-        print(test_follow_missing.index[i] + ' : ' + str(test_follow_missing[i]))
-print('\n')
+col_null_count(test_follow_dense)
+
+# missing value count, again.
+print('#missing value in each columns in train')
+col_null_count(train)
+print('#missing value in each columns in test')
+col_null_count(test)
 
 # missing value imputation (using mode or average by now)
-train_impute = train_dense
+# train_impute = train_dense
+train_impute = pd.DataFrame(train_dense)
 print(train_dense['MasVnrType'].isnull().sum())
 for colname in cate_vari + order_cate_vari:
     if colname in list(train_dense.columns.values):
@@ -158,6 +144,8 @@ for colname in cate_vari + order_cate_vari:
                     train_impute[colname].iat[index] = mode
 # print('MasVnrType' in cate_vari)
 print(train_impute['MasVnrType'].isnull().sum())
+print(train_dense['MasVnrType'].isnull().sum())
+print(train['MasVnrType'].isnull().sum())
 
 # create dummy variables
 # print(type(pd.get_dummies(train['MSSubClass']))) # DataFrame

@@ -2,3 +2,7 @@
 *.iml
 __pycache__
 .git
+HousePrices/train.csv.gz
+HousePrices/test.csv.gz
+HousePrices/sample_submission.csv.gz
+HousePricePrediction.iml

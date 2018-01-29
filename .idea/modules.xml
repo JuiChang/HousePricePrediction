@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/HousePricePrediction.iml" filepath="$PROJECT_DIR$/HousePricePrediction.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cate_to_numer/cate_to_numer.iml" filepath="$PROJECT_DIR$/cate_to_numer/cate_to_numer.iml" />
+    </modules>
+  </component>
+</project>
