@@ -119,36 +119,39 @@ col_null_count(test)
 
 # missing value imputation (using mode or average by now)
 # train_impute = train_dense
-train_impute = pd.DataFrame(train_dense)
+# train_impute = pd.DataFrame(train_dense)
 # both two assignments above lead to changes of train_dense when train_impute is changed
 # contrary to df assignment of .drop, .append return
 # print(train_dense['MasVnrType'].isnull().sum())
+# solution : train_impute = train_dense.copy()
+combine_impute = train_dense.append(test_follow_dense)
+combine_impute = combine_impute.reset_index(drop=True)
 for colname in cate_vari + order_cate_vari:
-    if colname in list(train_dense.columns.values):
-        if train_dense[colname].isnull().sum() > 0:
-            null_list = train_dense[colname].isnull()
-            mode = train_dense[colname].mode().values[0]
-            for index in range(0, len(train_dense)):
+    if colname in list(combine_impute.columns.values):
+        if combine_impute[colname].isnull().sum() > 0:
+            null_list = combine_impute[colname].isnull()
+            mode = combine_impute[colname].mode().values[0]
+            for index in range(0, len(combine_impute)):
                 if null_list[index]:
-                    train_impute[colname].iat[index] = mode
+                    combine_impute[colname].iat[index] = mode
 # print('MasVnrType' in cate_vari)
 # print(train_impute['MasVnrType'].isnull().sum())
 # print(train_dense['MasVnrType'].isnull().sum())
 # print(train['MasVnrType'].isnull().sum())
 
 for colname in numer_vari + year_vari:
-    if colname in list(train_dense.columns.values):
-        if train_dense[colname].isnull().sum() > 0:
-            null_list = train_dense[colname].isnull()
-            mean = train_dense[colname].mean()
-            for index in range(0, len(train_dense)):
+    if colname in list(combine_impute.columns.values):
+        if combine_impute[colname].isnull().sum() > 0:
+            null_list = combine_impute[colname].isnull()
+            mean = combine_impute[colname].mean()
+            for index in range(0, len(combine_impute)):
                 if null_list[index]:
-                    train_impute[colname].iat[index] = mean
+                    combine_impute[colname].iat[index] = mean
 
 # missing value count, again.
-print('#missing value in each columns in train_impute')
-col_null_count(train_impute)
-print(train_impute.iloc[:10, :])
+# print('#missing value in each columns in train_impute')
+# col_null_count(train_impute)
+# print(train_impute.iloc[:10, :])
 
 # create dummy variables
 # print(type(pd.get_dummies(train['MSSubClass']))) # DataFrame
@@ -157,6 +160,12 @@ print(train_impute.iloc[:10, :])
 # print(type(pd.get_dummies(test['MSZoning'])))
 # all dummy variables are 0 when there exist missing value, not a reasonable imputation
 # print(pd.get_dummies(test['MSZoning']).loc[790])
+
+# for colname in cate_vari + order_cate_vari:
+
+
+# combine = train.drop(['SalePrice'], axis=1).append(test)
+
 
 # benchmark
 # CV

@@ -1,18 +1,17 @@
 import math
 
 def cat_to_num(cat_list, ser):
-    ser2 = ser
     print("In")
-    for i in range(0, len(ser2)):
+    for i in range(0, len(ser)):
         # print(i)
         for j in range(0, len(cat_list)):
-            # print(ser2[i])
-            if ser2[i] == cat_list[j]:
-                # ser2.iat[i] = j + 1
-                ser2.iat[i] = len(cat_list) - j
+            # print(ser[i])
+            if ser[i] == cat_list[j]:
+                # ser.iat[i] = j + 1
+                ser.iat[i] = len(cat_list) - j
                 break
             elif cat_list[j] == 'NA':
-                if math.isnan(ser2.iat[i]):
-                    ser2.iat[i] = len(cat_list) - j
+                if math.isnan(ser.iat[i]):
+                    ser.iat[i] = len(cat_list) - j
                     break
     return
