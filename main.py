@@ -44,23 +44,11 @@ year_vari = ['YearBuilt', 'YearRemodAdd', 'GarageYrBlt', 'MoSold', 'YrSold'] # M
 
 # combine train and test
 combine = train.drop(['SalePrice'], axis=1).append(test)
-# print(combine)
-# print(combine.index[2000])
 combine = combine.reset_index(drop=True)
+print("combine set size : " + str(len(combine)) + '\n')
 
 train_y = train['SalePrice'].copy()
-# train_y[1] = 34
-# print(train['SalePrice'][1])
 print('#missing value in train_y : ' + str(train_y.isnull().sum()) + '\n')
-
-# .drop and .append return new dataframe(by doc)
-# print('\n' + "#indep. variables : " + str(len(train.columns)-1))
-# print("train set size : " + str(len(train)))
-
-# print(combine)
-# print(combine.index[2000])
-
-print("combine set size : " + str(len(combine)) + '\n')
 
 # missing value count
 print('#missing value in each columns in train.csv')
@@ -125,12 +113,6 @@ print('#missing value in each columns in test')
 col_null_count(test)
 
 # missing value imputation (using mode or average by now)
-# train_impute = train_dense
-# train_impute = pd.DataFrame(train_dense)
-# both two assignments above lead to changes of train_dense when train_impute is changed
-# contrary to df assignment of .drop, .append return
-# print(train_dense['MasVnrType'].isnull().sum())
-# solution : train_impute = train_dense.copy()
 combine_impute = train_dense.append(test_follow_dense)
 combine_impute = combine_impute.reset_index(drop=True)
 for colname in cate_vari + order_cate_vari:
@@ -141,10 +123,6 @@ for colname in cate_vari + order_cate_vari:
             for index in range(0, len(combine_impute)):
                 if null_list[index]:
                     combine_impute[colname].iat[index] = mode
-# print('MasVnrType' in cate_vari)
-# print(train_impute['MasVnrType'].isnull().sum())
-# print(train_dense['MasVnrType'].isnull().sum())
-# print(train['MasVnrType'].isnull().sum())
 
 for colname in numer_vari + year_vari:
     if colname in list(combine_impute.columns.values):
@@ -154,11 +132,6 @@ for colname in numer_vari + year_vari:
             for index in range(0, len(combine_impute)):
                 if null_list[index]:
                     combine_impute[colname].iat[index] = mean
-
-# missing value count, again.
-# print('#missing value in each columns in train_impute')
-# col_null_count(train_impute)
-# print(train_impute.iloc[:10, :])
 
 # create dummy variables
 combine_dum = combine_impute.copy()
@@ -173,29 +146,17 @@ train_dum = combine_dum.iloc[:len(train), :]
 test_dum = combine_dum.iloc[len(train):, :]
 test_dum = test_dum.reset_index(drop=True)
 
-# print(train_dum.iloc[:10, :10])
-# print(test_dum.iloc[:10, :10])
-
 # fit linear regression
 trainX = train_dum.copy()
 trainY = train_y_dense_row.copy()
 testX = test_dum.copy()
 testID = test_dum['Id'].copy()
-# print(trainX.shape)
-# print(trainY.shape)
-# print(testX.shape)
-# trainY = trainY.values.reshape(len(trainY), 1)
-# print(trainY.shape)
 # Create linear regression object
 regr = linear_model.LinearRegression()
 # Train the model using the training sets
 regr.fit(trainX, trainY)
 # Make predictions using the testing set
 predtestY = regr.predict(testX)
-# print(type(predtestY))
-# print(predtestY)
-# print(predtestY.shape)
-# print(type(predtestY))
 predtestY = pd.DataFrame(
     {
         'Id': testID.tolist(),
@@ -203,10 +164,6 @@ predtestY = pd.DataFrame(
     }
 )
 predtestY.to_csv('./submission/submission_py.csv', index=False)
-# print(type(predtestY))
-# print(predtestY.iloc[:10, :])
-# print(type(predtestY.iloc[10, 0]))
-
 
 # benchmark
 # CV
