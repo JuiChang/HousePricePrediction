@@ -1,8 +1,8 @@
 import pandas as pd
 from sklearn.model_selection import cross_val_score
 from sklearn import linear_model
-from cat_to_num import cat_to_num
-from col_null_count import  col_null_count
+from HousePricePrediction_functions import cat_to_num
+from HousePricePrediction_functions import col_null_count
 import math
 
 train = pd.read_csv('./HousePrices/train.csv')
