@@ -48,6 +48,11 @@ combine = train.drop(['SalePrice'], axis=1).append(test)
 # print(combine.index[2000])
 combine = combine.reset_index(drop=True)
 
+train_y = train['SalePrice'].copy()
+# train_y[1] = 34
+# print(train['SalePrice'][1])
+print('#missing value in train_y : ' + str(train_y.isnull().sum()) + '\n')
+
 # .drop and .append return new dataframe(by doc)
 # print('\n' + "#indep. variables : " + str(len(train.columns)-1))
 # print("train set size : " + str(len(train)))
@@ -98,6 +103,7 @@ for row in range(0, len(train)):
     if train_conv.loc[row].isnull().sum() > (len(train.columns)-1)*0.3:
         sparse_row.append(row)
 train_dense_row = train_conv.drop(train_conv.index[sparse_row])
+train_y_dense_row = train_y.drop(train_y.index[sparse_row])
 
 dense_column = list()
 for col in range(0, len(train_dense_row.columns)-1):
@@ -167,12 +173,40 @@ train_dum = combine_dum.iloc[:len(train), :]
 test_dum = combine_dum.iloc[len(train):, :]
 test_dum = test_dum.reset_index(drop=True)
 
-print(train_dum.iloc[:10, :10])
-print(test_dum.iloc[:10, :10])
+# print(train_dum.iloc[:10, :10])
+# print(test_dum.iloc[:10, :10])
 
 # fit linear regression
-train_x = train_dum.copy()
-# train_y goto rm sparse row...
+trainX = train_dum.copy()
+trainY = train_y_dense_row.copy()
+testX = test_dum.copy()
+testID = test_dum['Id'].copy()
+# print(trainX.shape)
+# print(trainY.shape)
+# print(testX.shape)
+# trainY = trainY.values.reshape(len(trainY), 1)
+# print(trainY.shape)
+# Create linear regression object
+regr = linear_model.LinearRegression()
+# Train the model using the training sets
+regr.fit(trainX, trainY)
+# Make predictions using the testing set
+predtestY = regr.predict(testX)
+# print(type(predtestY))
+# print(predtestY)
+# print(predtestY.shape)
+# print(type(predtestY))
+predtestY = pd.DataFrame(
+    {
+        'Id': testID.tolist(),
+        'SalePrice': predtestY.tolist()
+    }
+)
+predtestY.to_csv('./submission/submission_py.csv', index=False)
+# print(type(predtestY))
+# print(predtestY.iloc[:10, :])
+# print(type(predtestY.iloc[10, 0]))
+
 
 # benchmark
 # CV
