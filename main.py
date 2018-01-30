@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import cross_val_score
+from sklearn import linear_model
 from cat_to_num import cat_to_num
 from col_null_count import  col_null_count
 import math
@@ -63,7 +64,7 @@ print('#missing value in each columns in test.csv')
 col_null_count(test)
 
 # change ordered-category variables to numerical
-combine_conv = combine
+combine_conv = combine.copy()
 cat_to_num(['Ex', 'Gd', 'TA', 'Fa', 'Po'], combine_conv['ExterQual'])
 cat_to_num(['Ex', 'Gd', 'TA', 'Fa', 'Po'], combine_conv['ExterCond'])
 cat_to_num(['Ex', 'Gd', 'TA', 'Fa', 'Po', 'NA'], combine_conv['BsmtQual'])
@@ -154,18 +155,24 @@ for colname in numer_vari + year_vari:
 # print(train_impute.iloc[:10, :])
 
 # create dummy variables
-# print(type(pd.get_dummies(train['MSSubClass']))) # DataFrame
-# print(pd.get_dummies(train['MSSubClass']))
-# print(pd.get_dummies(test['MSZoning']))
-# print(type(pd.get_dummies(test['MSZoning'])))
-# all dummy variables are 0 when there exist missing value, not a reasonable imputation
-# print(pd.get_dummies(test['MSZoning']).loc[790])
+combine_dum = combine_impute.copy()
+for colname in cate_vari:
+    if colname in list(combine_dum.columns.values):
+        combine_dum = pd.concat([combine_dum, pd.get_dummies(combine_dum[colname])], axis=1)
+        combine_dum = combine_dum.drop([colname], axis=1)
+print('\n' + "#variables : " + str(len(combine_dum.columns)))
+print("set size : " + str(len(combine_dum)))
 
-# for colname in cate_vari + order_cate_vari:
+train_dum = combine_dum.iloc[:len(train), :]
+test_dum = combine_dum.iloc[len(train):, :]
+test_dum = test_dum.reset_index(drop=True)
 
+print(train_dum.iloc[:10, :10])
+print(test_dum.iloc[:10, :10])
 
-# combine = train.drop(['SalePrice'], axis=1).append(test)
-
+# fit linear regression
+train_x = train_dum.copy()
+# train_y goto rm sparse row...
 
 # benchmark
 # CV
