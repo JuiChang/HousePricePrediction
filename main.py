@@ -4,6 +4,7 @@ from sklearn import linear_model
 from HousePricePrediction_functions import cat_to_num
 from HousePricePrediction_functions import col_null_count
 from HousePricePrediction_functions import rm_sparse_row_col
+from HousePricePrediction_functions import impute_mode_aver
 import math
 
 train = pd.read_csv('./HousePrices/train.csv')
@@ -86,34 +87,12 @@ col_null_count(train_conv)
 print('#missing value in each columns in test_conv')
 col_null_count(test_conv)
 
-# remove sparse rows and columns
-# sparse_row = list()
-# for row in range(0, len(train)):
-#     if train_conv.loc[row].isnull().sum() > (len(train.columns)-1)*0.3:
-#         sparse_row.append(row)
-# train_dense_row = train_conv.drop(train_conv.index[sparse_row])
-# train_y_dense_row = train_y.drop(train_y.index[sparse_row])
-#
-# dense_column = list()
-# for col in range(0, len(train_dense_row.columns)-1):
-#     if train_dense_row.iloc[:, col].isnull().sum() < len(train)/2:
-#         dense_column.append(col)
-# train_dense = train_dense_row.iloc[:, dense_column]
-# test_follow_dense = test_conv.iloc[:, dense_column]
-
-train_dense = pd.DataFrame()
-test_follow_dense = pd.DataFrame()
-train_y_dense_row = pd.DataFrame()
-
-ret = list()
 ret = rm_sparse_row_col(train_conv, test_conv, train_y,
                   # train_dense, test_follow_dense, train_y_dense_row,
                   0.3, 0.5)
 train_y_dense_row = ret[0]
 train_dense = ret[1]
 test_follow_dense = ret[2]
-
-print(train_dense.iloc[:10, :10])
 
 # missing value count, again.
 print('#missing value in each columns in train_dense')
@@ -128,25 +107,32 @@ print('#missing value in each columns in test')
 col_null_count(test)
 
 # missing value imputation (using mode or average by now)
+# combine_impute = train_dense.append(test_follow_dense)
+# combine_impute = combine_impute.reset_index(drop=True)
+# for colname in cate_vari + order_cate_vari:
+#     if colname in list(combine_impute.columns.values):
+#         if combine_impute[colname].isnull().sum() > 0:
+#             null_list = combine_impute[colname].isnull()
+#             mode = combine_impute[colname].mode().values[0]
+#             for index in range(0, len(combine_impute)):
+#                 if null_list[index]:
+#                     combine_impute[colname].iat[index] = mode
+#
+# for colname in numer_vari + year_vari:
+#     if colname in list(combine_impute.columns.values):
+#         if combine_impute[colname].isnull().sum() > 0:
+#             null_list = combine_impute[colname].isnull()
+#             mean = combine_impute[colname].mean()
+#             for index in range(0, len(combine_impute)):
+#                 if null_list[index]:
+#                     combine_impute[colname].iat[index] = mean
 combine_impute = train_dense.append(test_follow_dense)
 combine_impute = combine_impute.reset_index(drop=True)
-for colname in cate_vari + order_cate_vari:
-    if colname in list(combine_impute.columns.values):
-        if combine_impute[colname].isnull().sum() > 0:
-            null_list = combine_impute[colname].isnull()
-            mode = combine_impute[colname].mode().values[0]
-            for index in range(0, len(combine_impute)):
-                if null_list[index]:
-                    combine_impute[colname].iat[index] = mode
+impute_mode_aver(combine_impute, cate_vari + order_cate_vari, numer_vari + year_vari)
 
-for colname in numer_vari + year_vari:
-    if colname in list(combine_impute.columns.values):
-        if combine_impute[colname].isnull().sum() > 0:
-            null_list = combine_impute[colname].isnull()
-            mean = combine_impute[colname].mean()
-            for index in range(0, len(combine_impute)):
-                if null_list[index]:
-                    combine_impute[colname].iat[index] = mean
+# missing value count, again.
+print('#missing value in each columns in combine_impute')
+col_null_count(combine_impute)
 
 # create dummy variables
 combine_dum = combine_impute.copy()

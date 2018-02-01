@@ -46,3 +46,23 @@ def rm_sparse_row_col(train_conv, test_conv, train_y,
     ret.append(test_conv.iloc[:, dense_column])
 
     return ret
+
+def impute_mode_aver(combine_impute, cate_vari_list, numer_vari_list):
+    for colname in cate_vari_list:
+        if colname in list(combine_impute.columns.values):
+            if combine_impute[colname].isnull().sum() > 0:
+                null_list = combine_impute[colname].isnull()
+                mode = combine_impute[colname].mode().values[0]
+                for index in range(0, len(combine_impute)):
+                    if null_list[index]:
+                        combine_impute[colname].iat[index] = mode
+
+    for colname in numer_vari_list:
+        if colname in list(combine_impute.columns.values):
+            if combine_impute[colname].isnull().sum() > 0:
+                null_list = combine_impute[colname].isnull()
+                mean = combine_impute[colname].mean()
+                for index in range(0, len(combine_impute)):
+                    if null_list[index]:
+                        combine_impute[colname].iat[index] = mean
+    return
