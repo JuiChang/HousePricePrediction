@@ -1,4 +1,6 @@
 import math
+import pandas as pd
+
 
 def cat_to_num(cat_list, ser):
     print("In")
@@ -16,6 +18,7 @@ def cat_to_num(cat_list, ser):
                     break
     return
 
+
 def col_null_count(df):
     train_dense_missing = df.isnull().sum(axis=0)
     for i in range(0, len(train_dense_missing)):
@@ -23,6 +26,7 @@ def col_null_count(df):
             print(train_dense_missing.index[i] + ' : ' + str(train_dense_missing[i]))
     print('\n')
     return
+
 
 def rm_sparse_row_col(train_conv, test_conv, train_y,
                       # train_dense, test_follow_dense, train_y_dense_row,
@@ -47,6 +51,7 @@ def rm_sparse_row_col(train_conv, test_conv, train_y,
 
     return ret
 
+
 def impute_mode_aver(combine_impute, cate_vari_list, numer_vari_list):
     for colname in cate_vari_list:
         if colname in list(combine_impute.columns.values):
@@ -66,3 +71,12 @@ def impute_mode_aver(combine_impute, cate_vari_list, numer_vari_list):
                     if null_list[index]:
                         combine_impute[colname].iat[index] = mean
     return
+
+
+def create_dum_vari(df_in_dum, cate_vari_list):
+    df_dum = df_in_dum.copy()
+    for colname in cate_vari_list:
+        if colname in list(df_dum.columns.values):
+            df_dum = pd.concat([df_dum, pd.get_dummies(df_dum[colname])], axis=1)
+            df_dum.drop([colname], axis=1, inplace=True)
+    return df_dum

@@ -5,6 +5,7 @@ from HousePricePrediction_functions import cat_to_num
 from HousePricePrediction_functions import col_null_count
 from HousePricePrediction_functions import rm_sparse_row_col
 from HousePricePrediction_functions import impute_mode_aver
+from HousePricePrediction_functions import create_dum_vari
 import math
 
 train = pd.read_csv('./HousePrices/train.csv')
@@ -107,25 +108,6 @@ print('#missing value in each columns in test')
 col_null_count(test)
 
 # missing value imputation (using mode or average by now)
-# combine_impute = train_dense.append(test_follow_dense)
-# combine_impute = combine_impute.reset_index(drop=True)
-# for colname in cate_vari + order_cate_vari:
-#     if colname in list(combine_impute.columns.values):
-#         if combine_impute[colname].isnull().sum() > 0:
-#             null_list = combine_impute[colname].isnull()
-#             mode = combine_impute[colname].mode().values[0]
-#             for index in range(0, len(combine_impute)):
-#                 if null_list[index]:
-#                     combine_impute[colname].iat[index] = mode
-#
-# for colname in numer_vari + year_vari:
-#     if colname in list(combine_impute.columns.values):
-#         if combine_impute[colname].isnull().sum() > 0:
-#             null_list = combine_impute[colname].isnull()
-#             mean = combine_impute[colname].mean()
-#             for index in range(0, len(combine_impute)):
-#                 if null_list[index]:
-#                     combine_impute[colname].iat[index] = mean
 combine_impute = train_dense.append(test_follow_dense)
 combine_impute = combine_impute.reset_index(drop=True)
 impute_mode_aver(combine_impute, cate_vari + order_cate_vari, numer_vari + year_vari)
@@ -135,11 +117,13 @@ print('#missing value in each columns in combine_impute')
 col_null_count(combine_impute)
 
 # create dummy variables
-combine_dum = combine_impute.copy()
-for colname in cate_vari:
-    if colname in list(combine_dum.columns.values):
-        combine_dum = pd.concat([combine_dum, pd.get_dummies(combine_dum[colname])], axis=1)
-        combine_dum = combine_dum.drop([colname], axis=1)
+# combine_dum = combine_impute.copy()
+# for colname in cate_vari:
+#     if colname in list(combine_dum.columns.values):
+#         combine_dum = pd.concat([combine_dum, pd.get_dummies(combine_dum[colname])], axis=1)
+#         combine_dum = combine_dum.drop([colname], axis=1)
+
+combine_dum = create_dum_vari(combine_impute, cate_vari)
 print('\n' + "#variables : " + str(len(combine_dum.columns)))
 print("set size : " + str(len(combine_dum)))
 
