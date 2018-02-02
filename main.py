@@ -6,6 +6,7 @@ from HousePricePrediction_functions import col_null_count
 from HousePricePrediction_functions import rm_sparse_row_col
 from HousePricePrediction_functions import impute_mode_aver
 from HousePricePrediction_functions import create_dum_vari
+import numpy as np
 import math
 
 train = pd.read_csv('./HousePrices/train.csv')
@@ -119,24 +120,27 @@ train_dum = combine_dum.iloc[:len(train), :]
 test_dum = combine_dum.iloc[len(train):, :]
 test_dum = test_dum.reset_index(drop=True)
 
-# fit linear regression
-trainX = train_dum.copy()
+# prepare for fitting
+trainX = train_dum.drop(['Id'], axis=1)
 trainY = train_y_dense_row.copy()
-testX = test_dum.copy()
+testX = test_dum.drop(['Id'], axis=1)
 testID = test_dum['Id'].copy()
+# fit linear regression
 # Create linear regression object
 regr = linear_model.LinearRegression()
-# Train the model using the training sets
-regr.fit(trainX, trainY)
-# Make predictions using the testing set
-predtestY = regr.predict(testX)
-predtestY = pd.DataFrame(
-    {
-        'Id': testID.tolist(),
-        'SalePrice': predtestY.tolist()
-    }
-)
-predtestY.to_csv('./submission/submission_py.csv', index=False)
+# # Train the model using the training sets
+# regr.fit(trainX, trainY)
+# # Make predictions using the testing set
+# predtestY = regr.predict(testX)
+# predtestY = pd.DataFrame(
+#     {
+#         'Id': testID.tolist(),
+#         'SalePrice': predtestY.tolist()
+#     }
+# )
+# predtestY.to_csv('./submission/submission_py.csv', index=False)
+scores = cross_val_score(regr, trainX, trainY, cv=10)
+print(scores, np.mean(scores))
 
 # benchmark
 # CV
