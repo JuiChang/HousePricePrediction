@@ -88,9 +88,8 @@ col_null_count(train_conv)
 print('#missing value in each columns in test_conv')
 col_null_count(test_conv)
 
-ret = rm_sparse_row_col(train_conv, test_conv, train_y,
-                  # train_dense, test_follow_dense, train_y_dense_row,
-                  0.3, 0.5)
+# removing sparse rows and columns
+ret = rm_sparse_row_col(train_conv, test_conv, train_y, 0.3, 0.5)
 train_y_dense_row = ret[0]
 train_dense = ret[1]
 test_follow_dense = ret[2]
@@ -101,12 +100,6 @@ col_null_count(train_dense)
 print('#missing value in each columns in test_follow_dense')
 col_null_count(test_follow_dense)
 
-# missing value count, again.
-print('#missing value in each columns in train')
-col_null_count(train)
-print('#missing value in each columns in test')
-col_null_count(test)
-
 # missing value imputation (using mode or average by now)
 combine_impute = train_dense.append(test_follow_dense)
 combine_impute = combine_impute.reset_index(drop=True)
@@ -116,16 +109,11 @@ impute_mode_aver(combine_impute, cate_vari + order_cate_vari, numer_vari + year_
 print('#missing value in each columns in combine_impute')
 col_null_count(combine_impute)
 
+print('\n' + "#variables : ", len(combine_impute.columns))
 # create dummy variables
-# combine_dum = combine_impute.copy()
-# for colname in cate_vari:
-#     if colname in list(combine_dum.columns.values):
-#         combine_dum = pd.concat([combine_dum, pd.get_dummies(combine_dum[colname])], axis=1)
-#         combine_dum = combine_dum.drop([colname], axis=1)
-
 combine_dum = create_dum_vari(combine_impute, cate_vari)
-print('\n' + "#variables : " + str(len(combine_dum.columns)))
-print("set size : " + str(len(combine_dum)))
+print('\n' + "#variables : ", len(combine_dum.columns))
+print("set size : ", len(combine_dum))
 
 train_dum = combine_dum.iloc[:len(train), :]
 test_dum = combine_dum.iloc[len(train):, :]
