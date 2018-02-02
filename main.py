@@ -1,12 +1,14 @@
 import pandas as pd
 from sklearn.model_selection import cross_val_score
 from sklearn import linear_model
+from sklearn.ensemble import RandomForestRegressor
 from HousePricePrediction_functions import cat_to_num
 from HousePricePrediction_functions import col_null_count
 from HousePricePrediction_functions import rm_sparse_row_col
 from HousePricePrediction_functions import impute_mode_aver
 from HousePricePrediction_functions import create_dum_vari
 import numpy as np
+import xgboost as xgb
 import math
 
 train = pd.read_csv('./HousePrices/train.csv')
@@ -125,9 +127,27 @@ trainX = train_dum.drop(['Id'], axis=1)
 trainY = train_y_dense_row.copy()
 testX = test_dum.drop(['Id'], axis=1)
 testID = test_dum['Id'].copy()
-# fit linear regression
-# Create linear regression object
-regr = linear_model.LinearRegression()
+
+# # fit linear regression
+# # Create linear regression object
+# regr = linear_model.LinearRegression()
+# # # Train the model using the training sets
+# # regr.fit(trainX, trainY)
+# # # Make predictions using the testing set
+# # predtestY = regr.predict(testX)
+# # predtestY = pd.DataFrame(
+# #     {
+# #         'Id': testID.tolist(),
+# #         'SalePrice': predtestY.tolist()
+# #     }
+# # )
+# # predtestY.to_csv('./submission/submission_py.csv', index=False)
+# scores = cross_val_score(regr, trainX, trainY, cv=10)
+# print(scores, np.mean(scores))
+
+# # fit RF regression
+# # Create linear regression object
+# regr = RandomForestRegressor(max_depth=2, random_state=0)
 # # Train the model using the training sets
 # regr.fit(trainX, trainY)
 # # Make predictions using the testing set
@@ -138,8 +158,25 @@ regr = linear_model.LinearRegression()
 #         'SalePrice': predtestY.tolist()
 #     }
 # )
-# predtestY.to_csv('./submission/submission_py.csv', index=False)
-scores = cross_val_score(regr, trainX, trainY, cv=10)
+# predtestY.to_csv('./submission/submission_py_RF.csv', index=False)
+# scores = cross_val_score(regr, trainX, trainY, cv=10)
+# print(scores, np.mean(scores))
+
+# fit xgb
+trainX = trainX.as_matrix()
+testX = testX.as_matrix()
+gbhs = xgb.XGBRegressor(max_depth=3, n_estimators=300, learning_rate=0.05)
+gbm = gbhs.fit(trainX, trainY)
+predtestY = gbm.predict(testX)
+# Make predictions using the testing set
+predtestY = pd.DataFrame(
+    {
+        'Id': testID.tolist(),
+        'SalePrice': predtestY.tolist()
+    }
+)
+predtestY.to_csv('./submission/submission_py_xgb.csv', index=False)
+scores = cross_val_score(gbhs, trainX, trainY, cv=10)
 print(scores, np.mean(scores))
 
 # benchmark
@@ -149,4 +186,4 @@ print(scores, np.mean(scores))
 #   PCA
 # (1)benchmark : linear regression (2)just before overfit
 # xgboost, RF
-# ensembling(corelation btw the results)
+# ensembling(correlation btw the results)
