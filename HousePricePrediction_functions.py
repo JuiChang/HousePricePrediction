@@ -70,9 +70,65 @@ def impute_mode_aver(combine_impute, cate_vari_list, numer_vari_list):
 
 
 def create_dum_vari(df_in_dum, cate_vari_list):
+    ret = list()
     df_dum = df_in_dum.copy()
+    new_columns = list()
     for colname in cate_vari_list:
+        print('for start')
         if colname in list(df_dum.columns.values):
-            df_dum = pd.concat([df_dum, pd.get_dummies(df_dum[colname])], axis=1)
+            tmp_df = pd.get_dummies(df_dum[colname])
+            tmp_df = avoid_duplicate_label(df_dum, tmp_df)
+            print(tmp_df.iloc[:10, :])
+            print(1)
+            tmp_df = tmp_df.reset_index(drop=True)
+            df_dum = pd.concat([df_dum, tmp_df], axis=1, join_axes=[df_dum.index])
+            # df_dum = pd.concat([df_dum, tmp_df], axis=1)
+            print(list(tmp_df.columns.values)[0])
+            print(df_dum[list(tmp_df.columns.values)[0]])
+            print(2)
             df_dum.drop([colname], axis=1, inplace=True)
-    return df_dum
+            print(3)
+            new_columns += list(tmp_df.columns.values)
+        print('for end')
+    print(df_dum['$Artery'])
+    ret.append(df_dum)
+    ret.append(new_columns)
+    print(ret[0]['$Artery'])
+    return ret
+
+
+def avoid_duplicate_label(df_big_in, df_small_in):
+    df_big = df_big_in.copy()
+    df_small = df_small_in.copy()
+    for col_name in list(df_small.columns.values):
+        print('col_name: ', col_name)
+        tmp_col_name = col_name
+        while tmp_col_name in list(df_big.columns.values):
+            # df_small.rename(index=str, columns={tmp_col_name: '$'+tmp_col_name}, inplace=True)
+            df_small = df_small.rename(index=str, columns={tmp_col_name: '$'+tmp_col_name})
+            tmp_col_name = '$' + tmp_col_name
+        print('tmp_col_name: ', tmp_col_name)
+    print(df_small.iloc[:10, :])
+    print('before return')
+    return df_small
+
+def binary_feature_selection_by_averYdiff(df_trainX_in, trainY_in, df_testX_in, vari_list, rm_propotion):
+    ret = list()
+    dict_aver_diff = dict()
+    df_trainX = df_trainX_in.copy()
+    df_testX = df_testX_in.copy()
+    trainY = trainY_in.copy()
+    for colname in list(df_trainX.columns.values):
+        if colname in vari_list:
+            aver_diff = 0
+            # print(len(df_trainX))
+            # print(colname)
+            for i in range(0, len(df_trainX)):
+                # print(i)
+                if df_trainX[colname].iat[i] == 1:
+                    aver_diff += trainY.iat[i]
+                else:
+                    aver_diff -= trainY.iat[i]
+            dict_aver_diff[colname] = aver_diff / len(df_trainX)
+    print(dict_aver_diff.values())
+    return ret

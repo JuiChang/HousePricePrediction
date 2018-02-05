@@ -7,6 +7,7 @@ from HousePricePrediction_functions import col_null_count
 from HousePricePrediction_functions import rm_sparse_row_col
 from HousePricePrediction_functions import impute_mode_aver
 from HousePricePrediction_functions import create_dum_vari
+from HousePricePrediction_functions import binary_feature_selection_by_averYdiff
 import numpy as np
 import xgboost as xgb
 import math
@@ -114,7 +115,9 @@ col_null_count(combine_impute)
 
 print('\n' + "#variables : ", len(combine_impute.columns))
 # create dummy variables
-combine_dum = create_dum_vari(combine_impute, cate_vari)
+ret = create_dum_vari(combine_impute, cate_vari)
+combine_dum = ret[0]
+dum_columns = ret[1]
 print('\n' + "#variables : ", len(combine_dum.columns))
 print("set size : ", len(combine_dum))
 
@@ -122,45 +125,17 @@ train_dum = combine_dum.iloc[:len(train), :]
 test_dum = combine_dum.iloc[len(train):, :]
 test_dum = test_dum.reset_index(drop=True)
 
+print(list(train_dum.columns.values))
+print(len(list(train_dum.columns.values)))
+train_dum.to_csv('./submission/train_dum.csv', index=False)
+
+binary_feature_selection_by_averYdiff(train_dum, train_y_dense_row, test_dum, dum_columns, 0)
+
 # prepare for fitting
 trainX = train_dum.drop(['Id'], axis=1)
 trainY = train_y_dense_row.copy()
 testX = test_dum.drop(['Id'], axis=1)
 testID = test_dum['Id'].copy()
-
-# # fit linear regression
-# # Create linear regression object
-# regr = linear_model.LinearRegression()
-# # # Train the model using the training sets
-# # regr.fit(trainX, trainY)
-# # # Make predictions using the testing set
-# # predtestY = regr.predict(testX)
-# # predtestY = pd.DataFrame(
-# #     {
-# #         'Id': testID.tolist(),
-# #         'SalePrice': predtestY.tolist()
-# #     }
-# # )
-# # predtestY.to_csv('./submission/submission_py.csv', index=False)
-# scores = cross_val_score(regr, trainX, trainY, cv=10)
-# print(scores, np.mean(scores))
-
-# # fit RF regression
-# # Create linear regression object
-# regr = RandomForestRegressor(max_depth=2, random_state=0)
-# # Train the model using the training sets
-# regr.fit(trainX, trainY)
-# # Make predictions using the testing set
-# predtestY = regr.predict(testX)
-# predtestY = pd.DataFrame(
-#     {
-#         'Id': testID.tolist(),
-#         'SalePrice': predtestY.tolist()
-#     }
-# )
-# predtestY.to_csv('./submission/submission_py_RF.csv', index=False)
-# scores = cross_val_score(regr, trainX, trainY, cv=10)
-# print(scores, np.mean(scores))
 
 # fit xgb
 trainX = trainX.as_matrix()
@@ -176,7 +151,7 @@ predtestY = pd.DataFrame(
     }
 )
 predtestY.to_csv('./submission/submission_py_xgb.csv', index=False)
-scores = cross_val_score(gbhs, trainX, trainY, cv=10)
+scores = cross_val_score(gbhs, trainX, trainY, cv=5)
 print(scores, np.mean(scores))
 
 # benchmark
