@@ -129,13 +129,17 @@ print(list(train_dum.columns.values))
 print(len(list(train_dum.columns.values)))
 train_dum.to_csv('./submission/train_dum.csv', index=False)
 
-binary_feature_selection_by_averYdiff(train_dum, train_y_dense_row, test_dum, dum_columns, 0)
+ret = binary_feature_selection_by_averYdiff(train_dum, train_y_dense_row, test_dum, dum_columns, 0)
+print('\n' + "#variables : ", len(ret[0].columns))
 
 # prepare for fitting
-trainX = train_dum.drop(['Id'], axis=1)
+# trainX = train_dum.drop(['Id'], axis=1)
+trainX = ret[0].drop(['Id'], axis=1)
 trainY = train_y_dense_row.copy()
-testX = test_dum.drop(['Id'], axis=1)
-testID = test_dum['Id'].copy()
+# testX = test_dum.drop(['Id'], axis=1)
+testX = ret[1].drop(['Id'], axis=1)
+# testID = test_dum['Id'].copy()
+testID = ret[1]['Id'].copy()
 
 # fit xgb
 trainX = trainX.as_matrix()

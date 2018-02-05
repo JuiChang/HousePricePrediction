@@ -112,23 +112,49 @@ def avoid_duplicate_label(df_big_in, df_small_in):
     print('before return')
     return df_small
 
-def binary_feature_selection_by_averYdiff(df_trainX_in, trainY_in, df_testX_in, vari_list, rm_propotion):
+
+def binary_feature_selection_by_averYdiff(df_trainX_in, trainY_in, df_testX_in, vari_list, threshold):
     ret = list()
     dict_aver_diff = dict()
     df_trainX = df_trainX_in.copy()
     df_testX = df_testX_in.copy()
     trainY = trainY_in.copy()
+    drop_columns = list()
+
+    # calculate the difference of the two averages of each columns
     for colname in list(df_trainX.columns.values):
         if colname in vari_list:
-            aver_diff = 0
             # print(len(df_trainX))
             # print(colname)
+            one_sum = 0
+            one_count = 0
+            zero_sum = 0
+            zero_count = 0
             for i in range(0, len(df_trainX)):
                 # print(i)
                 if df_trainX[colname].iat[i] == 1:
-                    aver_diff += trainY.iat[i]
+                    one_sum += trainY.iat[i]
+                    one_count += 1
                 else:
-                    aver_diff -= trainY.iat[i]
-            dict_aver_diff[colname] = aver_diff / len(df_trainX)
-    print(dict_aver_diff.values())
+                    zero_sum += trainY.iat[i]
+                    zero_count += 1
+            if one_count != 0 and zero_count != 0:
+                dict_aver_diff[colname] = one_sum/one_count - zero_sum/zero_count
+            else:
+                dict_aver_diff[colname] = 0
+    # print(dict_aver_diff.values())
+    print(dict_aver_diff)
+    print(len(dict_aver_diff))
+
+    # get the columns to drop
+    for key in dict_aver_diff.keys():
+        if abs(dict_aver_diff[key]) < threshold:
+            drop_columns.append(key)
+
+    # drop the columns
+    df_trainX.drop(drop_columns, axis=1, inplace=True)
+    df_testX.drop(drop_columns, axis=1, inplace=True)
+
+    ret.append(df_trainX)
+    ret.append(df_testX)
     return ret
