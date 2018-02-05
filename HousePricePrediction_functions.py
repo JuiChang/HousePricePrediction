@@ -1,5 +1,7 @@
 import math
 import pandas as pd
+import numpy as np
+import sys
 
 
 def cat_to_num(cat_list, ser):
@@ -74,26 +76,19 @@ def create_dum_vari(df_in_dum, cate_vari_list):
     df_dum = df_in_dum.copy()
     new_columns = list()
     for colname in cate_vari_list:
-        print('for start')
+        # print('for start')
         if colname in list(df_dum.columns.values):
             tmp_df = pd.get_dummies(df_dum[colname])
             tmp_df = avoid_duplicate_label(df_dum, tmp_df)
-            print(tmp_df.iloc[:10, :])
-            print(1)
             tmp_df = tmp_df.reset_index(drop=True)
             df_dum = pd.concat([df_dum, tmp_df], axis=1, join_axes=[df_dum.index])
             # df_dum = pd.concat([df_dum, tmp_df], axis=1)
-            print(list(tmp_df.columns.values)[0])
-            print(df_dum[list(tmp_df.columns.values)[0]])
-            print(2)
+            # print(list(tmp_df.columns.values)[0])
+            # print(df_dum[list(tmp_df.columns.values)[0]])
             df_dum.drop([colname], axis=1, inplace=True)
-            print(3)
             new_columns += list(tmp_df.columns.values)
-        print('for end')
-    print(df_dum['$Artery'])
     ret.append(df_dum)
     ret.append(new_columns)
-    print(ret[0]['$Artery'])
     return ret
 
 
@@ -101,15 +96,15 @@ def avoid_duplicate_label(df_big_in, df_small_in):
     df_big = df_big_in.copy()
     df_small = df_small_in.copy()
     for col_name in list(df_small.columns.values):
-        print('col_name: ', col_name)
+        # print('col_name: ', col_name)
         tmp_col_name = col_name
         while tmp_col_name in list(df_big.columns.values):
             # df_small.rename(index=str, columns={tmp_col_name: '$'+tmp_col_name}, inplace=True)
             df_small = df_small.rename(index=str, columns={tmp_col_name: '$'+tmp_col_name})
             tmp_col_name = '$' + tmp_col_name
-        print('tmp_col_name: ', tmp_col_name)
-    print(df_small.iloc[:10, :])
-    print('before return')
+        # print('tmp_col_name: ', tmp_col_name)
+    # print(df_small.iloc[:10, :])
+    # print('before return')
     return df_small
 
 
@@ -144,11 +139,42 @@ def binary_feature_selection_by_averYdiff(df_trainX_in, trainY_in, df_testX_in, 
                 dict_aver_diff[colname] = 0
     # print(dict_aver_diff.values())
     print(dict_aver_diff)
-    print(len(dict_aver_diff))
+    # print(len(dict_aver_diff))
 
     # get the columns to drop
     for key in dict_aver_diff.keys():
         if abs(dict_aver_diff[key]) < threshold:
+            drop_columns.append(key)
+
+    # drop the columns
+    df_trainX.drop(drop_columns, axis=1, inplace=True)
+    df_testX.drop(drop_columns, axis=1, inplace=True)
+
+    ret.append(df_trainX)
+    ret.append(df_testX)
+    return ret
+
+
+# by correlation coefficient
+def numerical_feature_selection_by_CC(df_trainX_in, trainY_in, df_testX_in, vari_list, threshold):
+    ret = list()
+    df_trainX = df_trainX_in.copy()
+    df_testX = df_testX_in.copy()
+    trainY = trainY_in.copy()
+    dict_cc = dict()
+    drop_columns = list()
+
+    for colname in list(df_trainX.columns.values):
+        if colname in vari_list:
+            print(colname)
+            sys.stdout.flush()
+            dict_cc[colname] = np.corrcoef(df_trainX[colname].values.astype(float),
+                                           trainY.values)[1, 0]
+    print(dict_cc)
+
+    # get the columns to drop
+    for key in dict_cc.keys():
+        if abs(dict_cc[key]) < threshold:
             drop_columns.append(key)
 
     # drop the columns

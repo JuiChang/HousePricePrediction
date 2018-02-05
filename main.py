@@ -10,6 +10,7 @@ from HousePricePrediction_functions import create_dum_vari
 from HousePricePrediction_functions import binary_feature_selection_by_averYdiff
 import numpy as np
 import xgboost as xgb
+from HousePricePrediction_functions import numerical_feature_selection_by_CC
 import math
 
 train = pd.read_csv('./HousePrices/train.csv')
@@ -129,7 +130,17 @@ print(list(train_dum.columns.values))
 print(len(list(train_dum.columns.values)))
 train_dum.to_csv('./submission/train_dum.csv', index=False)
 
-ret = binary_feature_selection_by_averYdiff(train_dum, train_y_dense_row, test_dum, dum_columns, 0)
+ret = binary_feature_selection_by_averYdiff(train_dum, train_y_dense_row, test_dum, dum_columns, 10000)
+print('\n' + "#variables : ", len(ret[0].columns))
+
+# print('test ', type(ret[0]['ExterQual'].values))
+# print('test ', type(ret[0]['ExterQual'].values[0]))
+# # print('test ', np.dtype(ret[0]['ExterQual'].values))
+# # print('test ', np.dtype(ret[0]['ExterQual'].values[0]))
+# # print('test ', np.dtype(1))
+
+ret = numerical_feature_selection_by_CC(ret[0], train_y_dense_row, ret[1],
+                                        order_cate_vari + numer_vari + year_vari, 0.3)
 print('\n' + "#variables : ", len(ret[0].columns))
 
 # prepare for fitting
