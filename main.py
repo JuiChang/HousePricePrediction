@@ -1,17 +1,14 @@
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_score
-from sklearn import linear_model
-from sklearn.ensemble import RandomForestRegressor
 from HousePricePrediction_functions import cat_to_num
 from HousePricePrediction_functions import col_null_count
 from HousePricePrediction_functions import rm_sparse_row_col
 from HousePricePrediction_functions import impute_mode_aver
 from HousePricePrediction_functions import create_dum_vari
 from HousePricePrediction_functions import binary_feature_selection_by_averYdiff
-import numpy as np
-import xgboost as xgb
 from HousePricePrediction_functions import numerical_feature_selection_by_CC
-import math
+import xgboost as xgb
 
 train = pd.read_csv('./HousePrices/train.csv')
 test = pd.read_csv('./HousePrices/test.csv')
@@ -130,26 +127,17 @@ print(list(train_dum.columns.values))
 print(len(list(train_dum.columns.values)))
 train_dum.to_csv('./submission/train_dum.csv', index=False)
 
+# feature selection
 ret = binary_feature_selection_by_averYdiff(train_dum, train_y_dense_row, test_dum, dum_columns, 10000)
 print('\n' + "#variables : ", len(ret[0].columns))
-
-# print('test ', type(ret[0]['ExterQual'].values))
-# print('test ', type(ret[0]['ExterQual'].values[0]))
-# # print('test ', np.dtype(ret[0]['ExterQual'].values))
-# # print('test ', np.dtype(ret[0]['ExterQual'].values[0]))
-# # print('test ', np.dtype(1))
-
 ret = numerical_feature_selection_by_CC(ret[0], train_y_dense_row, ret[1],
-                                        order_cate_vari + numer_vari + year_vari, 0.3)
+                                        order_cate_vari + numer_vari + year_vari, 0.05)
 print('\n' + "#variables : ", len(ret[0].columns))
 
 # prepare for fitting
-# trainX = train_dum.drop(['Id'], axis=1)
 trainX = ret[0].drop(['Id'], axis=1)
 trainY = train_y_dense_row.copy()
-# testX = test_dum.drop(['Id'], axis=1)
 testX = ret[1].drop(['Id'], axis=1)
-# testID = test_dum['Id'].copy()
 testID = ret[1]['Id'].copy()
 
 # fit xgb
@@ -158,7 +146,7 @@ testX = testX.as_matrix()
 gbhs = xgb.XGBRegressor(max_depth=3, n_estimators=300, learning_rate=0.05)
 gbm = gbhs.fit(trainX, trainY)
 predtestY = gbm.predict(testX)
-# Make predictions using the testing set
+# Make prediction for the testing set
 predtestY = pd.DataFrame(
     {
         'Id': testID.tolist(),
@@ -166,7 +154,7 @@ predtestY = pd.DataFrame(
     }
 )
 predtestY.to_csv('./submission/submission_py_xgb.csv', index=False)
-scores = cross_val_score(gbhs, trainX, trainY, cv=5)
+scores = cross_val_score(gbhs, trainX, trainY, cv=10)
 print(scores, np.mean(scores))
 
 # benchmark

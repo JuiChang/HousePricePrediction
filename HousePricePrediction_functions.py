@@ -166,7 +166,7 @@ def numerical_feature_selection_by_CC(df_trainX_in, trainY_in, df_testX_in, vari
 
     for colname in list(df_trainX.columns.values):
         if colname in vari_list:
-            print(colname)
+            # print(colname)
             sys.stdout.flush()
             dict_cc[colname] = np.corrcoef(df_trainX[colname].values.astype(float),
                                            trainY.values)[1, 0]
